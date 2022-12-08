@@ -1,5 +1,6 @@
 project_env/
 Project/.vscode/
+Project/tests/
 Project/downloaded_emotes/*
 !Project/downloaded_emotes/README.txt
 Project/converted_emotes/*
