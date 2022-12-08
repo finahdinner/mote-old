@@ -1,0 +1,1 @@
+Discord bot for uploading emotes to a discord server from a 7tv URL
