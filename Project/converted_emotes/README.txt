@@ -1,0 +1,1 @@
+This is to keep the converted_emotes directory in the repository.

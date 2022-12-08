@@ -1,0 +1,1 @@
+This is to keep the downloaded_emotes directory in the repository.
