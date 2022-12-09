@@ -1,5 +1,13 @@
 from PIL import Image, ImageSequence
 import requests
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions
+from fake_useragent import UserAgent
+import os
 
 """ Logging configuration """
 from for_logging import MyLogger
@@ -15,13 +23,51 @@ DOWNLOADED_EMOTES_PATH = "downloaded_emotes/"
 DISCORD_EMOTES_PATH = "discord_emotes/"
 
 
+""" Selenium Settings"""
+
+# Making the window 'headless' (not visible)
+WINDOW_OPTIONS = Options()
+WINDOW_OPTIONS.add_argument('--window-size=1920,1080') # so that element.click() works
+WINDOW_OPTIONS.add_argument('--headless')
+WINDOW_OPTIONS.add_argument('--disable-gpu')
+# set user agent
+ua = UserAgent()
+user_agent = str(ua.chrome)
+WINDOW_OPTIONS.add_argument(f'user-agent={user_agent}')
+
+
 """ Functions """
 
-def get_emote_id(page_url: str) -> str:
+def get_emote_details(page_url: str, name_given: str = "") -> tuple[str, str]:
     """ Extract 7TV emote ID from the page_url given """
+
+    # emote id
     emote_id = page_url.split("/")[-1]
     my_logger.logger.debug(f'{emote_id=}')
-    return emote_id
+
+    # if a name is given, we don't need to use Selenium to find the 7TV name
+    if name_given:
+        return (name_given, emote_id)
+
+    # else if no name is given, use Selenium to extract the 7TV name
+    if page_url.find('7tv.app') == -1: # if 7tv.app not in the name
+        emote_name = ""
+    else:
+        s = Service(f"{os.environ.get('CHROMEDRIVER_PATH')}")
+        driver = webdriver.Chrome(service=s, options=WINDOW_OPTIONS)
+        try:
+            driver.get(page_url)
+            # check every 0.1 seconds (poll_frequency) if the title contains 'by'. Once this is true, the code continue.
+            title_loaded = WebDriverWait(driver, 5, poll_frequency=0.1).until(expected_conditions.title_contains('by'))
+            page_title = driver.title
+            emote_name = page_title.split()[0]
+            my_logger.logger.debug(f"SUCCESS: {emote_name=}")
+        except:
+            emote_name = ""
+        finally:
+            driver.quit()
+
+    return (emote_name, emote_id)
 
 
 def get_emote_url(emote_id: str) -> str:
@@ -87,22 +133,35 @@ def discord_img(emote_id:str, file_path: str, emote_url_webp: str) -> str:
     return discord_img_path
 
 
-def main(page_url: str) -> str | bool:
+def main(page_url: str, name_given: str = "") -> tuple[str, str, str]:
     """ Main function. Downloads the image from the given url and converts to either
-    a gif (if animated) or a png format (if not animated), returning the file path. """
+    a gif (if animated) or a png format (if not animated).
+    It returns a 2-value tuple including the file path (empty string if false)
+    and error message (empty string if no errors). """
 
-    emote_id = get_emote_id(page_url) # get emote id from the given page url
+    if name_given: # if a name was provided
+        emote_name, emote_id = get_emote_details(page_url, name_given=name_given) # get emote id from the given page url
+    else: # if a name was not provided
+        emote_name, emote_id = get_emote_details(page_url) # get emote id from the given page url
+        if not emote_name: # if it was unable to find the name from the URL
+            logger_message = f'Invalid URL Provided.'
+            my_logger.logger.error(logger_message)
+            return (emote_name, "", logger_message)
+
     emote_url_webp = get_emote_url(emote_id) # get webp img url
     downloaded_img_path = download_emote(emote_id=emote_id, emote_url=emote_url_webp, img_type="webp") # download webp image
     if not downloaded_img_path: # if it failed to find the url
-        my_logger.logger.error(f'Emote URL for --{page_url}-- not found.')
-        return False
+        logger_message = f'Invalid URL Provided.'
+        my_logger.logger.error(logger_message)
+        return (emote_name, "", logger_message)
+
     discord_img_path = discord_img(emote_id=emote_id, file_path=downloaded_img_path, emote_url_webp=emote_url_webp)
     if not discord_img_path: # if it failed to load the downloaded file
-        my_logger.logger.error(f'Failed to download Discord image for --{page_url}--.')
-        return False
+        logger_message = f'Failed to download Discord image for --{page_url}--.'
+        my_logger.logger.error(logger_message)
+        return (emote_name, "", logger_message)
 
-    return discord_img_path # return file path if the process was successful
+    return (emote_name, discord_img_path, "") # return file path if the process was successful
 
 
 if __name__ == "__main__":
