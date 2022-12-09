@@ -70,9 +70,9 @@ def get_emote_details(page_url: str, name_given: str = "") -> tuple[str, str]:
     return (emote_name, emote_id)
 
 
-def get_emote_url(emote_id: str) -> str:
+def get_emote_url(emote_id: str, img_size_7tv: int = 4) -> str:
     """ Extract the exact emote path from the emote ID given """
-    emote_url = f"https://cdn.7tv.app/emote/{emote_id}/4x.webp"
+    emote_url = f"https://cdn.7tv.app/emote/{emote_id}/{img_size_7tv}x.webp"
     my_logger.logger.debug(f'{emote_url=}')
     return emote_url
 
@@ -121,7 +121,7 @@ def discord_img(emote_id:str, file_path: str, emote_url_webp: str) -> str:
         else:
             img_type = 'png'
 
-        discord_emote_url = emote_url_webp.replace('4x.webp', f'4x.{img_type}') # generate the correct png or gif url
+        discord_emote_url = emote_url_webp.replace('x.webp', f'x.{img_type}') # generate the correct png or gif url
         discord_img_path = download_emote(emote_id=emote_id, emote_url=discord_emote_url, img_type=img_type)
         if not discord_img_path: # if it can't navigate to the page
             return ""
@@ -133,7 +133,7 @@ def discord_img(emote_id:str, file_path: str, emote_url_webp: str) -> str:
     return discord_img_path
 
 
-def main(page_url: str, name_given: str = "") -> tuple[str, str, str]:
+def main(page_url: str, name_given: str = "", img_size_7tv: int = 4) -> tuple[str, str, str]:
     """ Main function. Downloads the image from the given url and converts to either
     a gif (if animated) or a png format (if not animated).
     It returns a 2-value tuple including the file path (empty string if false)
@@ -148,7 +148,7 @@ def main(page_url: str, name_given: str = "") -> tuple[str, str, str]:
             my_logger.logger.error(logger_message)
             return (emote_name, "", logger_message)
 
-    emote_url_webp = get_emote_url(emote_id) # get webp img url
+    emote_url_webp = get_emote_url(emote_id, img_size_7tv=img_size_7tv) # get webp img url
     downloaded_img_path = download_emote(emote_id=emote_id, emote_url=emote_url_webp, img_type="webp") # download webp image
     if not downloaded_img_path: # if it failed to find the url
         logger_message = f'Invalid URL Provided.'

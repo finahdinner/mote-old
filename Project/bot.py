@@ -53,30 +53,45 @@ async def grab(ctx, *args):
         return
 
     page_url = args[0]
+    # the bot will only send one message, and will edit it as it goes
+    bot_message = await(ctx.send("Extracting emoji info, bear with me..."))
     if len(args) == 2: # if a name is provided
         name_given = args[1]
         # download the correct emote for discord, and later uploading to the server with the name given (name_given)
-        emote_name, discord_img_path, error_message = extract_emote.main(page_url=page_url, name_given=name_given)
+        emote_name, discord_img_path, error_message = extract_emote.main(page_url=page_url, name_given=name_given, img_size_7tv=4)
     else: # no name is given - will use the default 7TV name
         # download the correct emote for discord, and return the default 7TV name
-        emote_name, discord_img_path, error_message = extract_emote.main(page_url=page_url, name_given="")
+        emote_name, discord_img_path, error_message = extract_emote.main(page_url=page_url, name_given="", img_size_7tv=4)
 
     if not discord_img_path: # if the image extraction failed
-        await(ctx.send(error_message)) # send the error message that was returned
+        await bot_message.edit(content=error_message) # send the error message that was returned
         return
 
     # upload emoji to the server
-    with open(discord_img_path, "rb") as f:
-        try:
-            await ctx.guild.create_custom_emoji(name=emote_name, image=f.read())
+    img_size_7tv = 3 # 7tv image size values vary from 1x to 4x
+    while img_size_7tv > 0: # once img_size_7tv hits 0, there are no more
+
+        try: # try to upload the image
+            with open(discord_img_path, "rb") as f:
+                image = f.read()
+            await ctx.guild.create_custom_emoji(name=emote_name, image=image)
+
         except discord.errors.HTTPException: # if image is too large
-            await(ctx.send("""ERROR: Image file too large.
-Must be **below 256kb.**"""))
+            await bot_message.edit(content="Image file too large - trying smaller versions...")
+            # try to download the next smallest emote, returning a new img path each time
+            emote_name, discord_img_path, error_message = extract_emote.main(page_url=page_url, name_given=emote_name, img_size_7tv=img_size_7tv)
+            if not discord_img_path: # if an error
+                await bot_message.edit(content=error_message) # send the error message that was returned
+                return ""
+            img_size_7tv -= 1 # for the next iteration, if needed
+
+        else: # if successfully uploaded
+            await bot_message.edit(content=f"""Success - {emote_name} grabbed.
+Sorry I took so long. :older_man:""")
+            my_logger.logger.debug('**SUCCESS!** Emoji uploaded to the server.')
             return
-        
-    await(ctx.send(f"""Success - {emote_name} retrieved.
-Sorry I take so long. :older_man:"""))
-    my_logger.logger.debug('SUCCESS - Emoji uploaded to the server.')
+
+    await bot_message.edit(content="ERROR: Could not find a suitably-sized emote with the URL provided.")
 
 
 bot.run(TOKEN)
