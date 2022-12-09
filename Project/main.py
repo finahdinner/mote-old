@@ -14,7 +14,8 @@ else:
     TOKEN = os.environ.get('RONNIE_PICKERING_TOKEN')
 
 description = "7TVGrabber"
-bot = commands.Bot(command_prefix='7tv/', description=description, help_command=None, intents=discord.Intents.all())
+command_prefix = "7tv/"
+bot = commands.Bot(command_prefix=command_prefix, description=description, help_command=None, intents=discord.Intents.all())
 
 
 """ Helper Functions """
@@ -22,7 +23,7 @@ bot = commands.Bot(command_prefix='7tv/', description=description, help_command=
 def incorrect_command_usage(function_name: str) -> str:
     """ Returns an message for the user when they incorrectly use a command. """
 
-    return f"""ERROR: Correct Usage: **7tv/{function_name} [URL]**
+    return f"""ERROR: Correct Usage: **{command_prefix}/{function_name} [URL]**
 Make sure not to include too few or too many words or phrases."""
 
 

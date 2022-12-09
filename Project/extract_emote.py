@@ -106,21 +106,5 @@ def main(page_url: str) -> str | bool:
 
 
 if __name__ == "__main__":
-    # emote_id = get_emote_id("1234")
-    # emote_url = get_emote_url(emote_id)
-    # downloaded_img_path = f"{download_emote(emote_id, emote_url)=}"
-    # print(downloaded_img_path)
-
-    page_url = "https://7tv.app/emotes/60abf171870d317bef23d399"
+    page_url = "https://7tv.app/emotes/60abf171870d317bef23d399" # test url
     main(page_url)
-
-    # discord_img('yo', 'hello.png')
-    # import sys    
-    # import os    
-    # file_name =  os.path.basename(sys.argv[0])
-    # print(file_name)
-
-
-    #  from pathlib import Path
-    #  file_name = Path(__file__).stem
-    #  print(file_name)
