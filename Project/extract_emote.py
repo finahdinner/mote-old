@@ -12,7 +12,7 @@ my_logger = MyLogger(file_name=file_name, log_file_path=f"logs/{file_name}.log")
 """ File paths """
 
 DOWNLOADED_EMOTES_PATH = "downloaded_emotes/"
-CONVERTED_EMOTES_PATH = "converted_emotes/"
+DISCORD_EMOTES_PATH = "discord_emotes/"
 
 
 """ Functions """
@@ -31,16 +31,23 @@ def get_emote_url(emote_id: str) -> str:
     return emote_url
 
 
-def download_emote(emote_id: str, emote_url: str) -> str:
+def download_emote(emote_id: str, emote_url: str, img_type: str = "webp") -> str:
     """ Download the (webp) emote with the emote url given, and return its path """
+
     response = requests.get(emote_url)
     if response.status_code != 200:
         return ""
-    downloaded_img_path = f"{DOWNLOADED_EMOTES_PATH}{emote_id}.webp"
-    with open(downloaded_img_path, "wb") as img:
+    # img type is webp by default, but can also be gif or png
+    if img_type == "webp": # if the download is webp, this is because we're downloading to check if animated
+        img_path = f"{DOWNLOADED_EMOTES_PATH}{emote_id}.{img_type}"
+    else: # ie if gif or png - this means we are downloading the type for discord
+        img_path = f"{DISCORD_EMOTES_PATH}{emote_id}.{img_type}"
+
+    with open(img_path, "wb") as img:
         img.write(response.content) # response.content is the image content
-    my_logger.logger.debug(f'SUCCESS - Downloaded Image. Path = {downloaded_img_path}.')
-    return downloaded_img_path
+    my_logger.logger.debug(f'SUCCESS - Downloaded Image. Path = {img_path}.')
+
+    return img_path
 
 
 def is_animated(img_path: str) -> bool:
@@ -56,43 +63,46 @@ def is_animated(img_path: str) -> bool:
         return False
 
 
-def convert_img(emote_id:str, file_path: str) -> str:
+def discord_img(emote_id:str, file_path: str, emote_url_webp: str) -> str:
     """ Convert the webp image into a gif, in order to be uploaded to Discord, and return its path. """
-    try: # big try-except block, I know this bad practice!
+
+    try: # big try-except block, I know this is bad practice!
         img = Image.open(file_path)
         img.info.pop('background', None) # remove background
 
-        if is_animated(file_path): # check if it's animated
-            img_extension = "gif"
+        if is_animated(file_path): # check if it's animated.
+            img_type = 'gif'
         else:
-            img_extension = "png"
+            img_type = 'png'
 
-        converted_img_path = f"{CONVERTED_EMOTES_PATH}{emote_id}.{img_extension}"
-        img.save(converted_img_path, save_all=True)
-        my_logger.logger.debug(f'SUCCESS - Converted Image. Path = {converted_img_path}.')
+        discord_emote_url = emote_url_webp.replace('4x.webp', f'4x.{img_type}') # generate the correct png or gif url
+        discord_img_path = download_emote(emote_id=emote_id, emote_url=discord_emote_url, img_type=img_type)
+        if not discord_img_path: # if it can't navigate to the page
+            return ""
+        my_logger.logger.debug(f'SUCCESS - Discord Image Downloaded. Path = {discord_img_path}.')
 
     except:
         return ""
     
-    return converted_img_path
+    return discord_img_path
 
 
 def main(page_url: str) -> str | bool:
     """ Main function. Downloads the image from the given url and converts to either
     a gif (if animated) or a png format (if not animated), returning the file path. """
 
-    emote_id = get_emote_id(page_url)
-    emote_url = get_emote_url(emote_id)
-    downloaded_img_path = download_emote(emote_id, emote_url)
+    emote_id = get_emote_id(page_url) # get emote id from the given page url
+    emote_url_webp = get_emote_url(emote_id) # get webp img url
+    downloaded_img_path = download_emote(emote_id=emote_id, emote_url=emote_url_webp, img_type="webp") # download webp image
     if not downloaded_img_path: # if it failed to find the url
         my_logger.logger.error(f'Emote URL for --{page_url}-- not found.')
         return False
-    converted_img_path = convert_img(emote_id, downloaded_img_path)
-    if not converted_img_path: # if it failed to load the downloaded file
-        my_logger.logger.error(f'Failed to convert image for --{page_url}--.')
+    discord_img_path = discord_img(emote_id=emote_id, file_path=downloaded_img_path, emote_url_webp=emote_url_webp)
+    if not discord_img_path: # if it failed to load the downloaded file
+        my_logger.logger.error(f'Failed to download Discord image for --{page_url}--.')
         return False
 
-    return converted_img_path # return file path if the process was successful
+    return discord_img_path # return file path if the process was successful
 
 
 if __name__ == "__main__":
@@ -104,7 +114,7 @@ if __name__ == "__main__":
     page_url = "https://7tv.app/emotes/60abf171870d317bef23d399"
     main(page_url)
 
-    # convert_img('yo', 'hello.png')
+    # discord_img('yo', 'hello.png')
     # import sys    
     # import os    
     # file_name =  os.path.basename(sys.argv[0])

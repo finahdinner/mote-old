@@ -4,8 +4,8 @@ Project/tests/
 Project/logs/
 Project/downloaded_emotes/*
 !Project/downloaded_emotes/README.txt
-Project/converted_emotes/*
-!Project/converted_emotes/README.txt
+Project/discord_emotes/*
+!Project/discord_emotes/README.txt
 
 
 
