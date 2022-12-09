@@ -2,6 +2,7 @@ import os
 import sys
 import discord
 from discord.ext import commands, tasks
+import discord
 
 import extract_emote
 
@@ -20,7 +21,7 @@ specified_token = '' # add a token in here if you wish to override the default t
 if specified_token:
     TOKEN = specified_token
 else:
-    TOKEN = os.environ.get('RONNIE_PICKERING_TOKEN')
+    TOKEN = os.environ.get('7TV_EMOTE_BOT_TOKEN')
 
 description = "7TVGrabber"
 command_prefix = "bants/"
@@ -64,10 +65,18 @@ async def grab(ctx, *args):
         await(ctx.send(error_message)) # send the error message that was returned
         return
 
+    # upload emoji to the server
+    with open(discord_img_path, "rb") as f:
+        try:
+            await ctx.guild.create_custom_emoji(name=emote_name, image=f.read())
+        except discord.errors.HTTPException: # if image is too large
+            await(ctx.send("""ERROR: Image file too large.
+Must be **below 256kb.**"""))
+            return
+        
     await(ctx.send(f"""Success - {emote_name} retrieved.
 Sorry I take so long. :older_man:"""))
-
-    my_logger.logger.debug('SUCCESS - Image uploaded to the server.')
+    my_logger.logger.debug('SUCCESS - Emoji uploaded to the server.')
 
 
 bot.run(TOKEN)

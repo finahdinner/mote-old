@@ -24,23 +24,3 @@ class MyLogger:
         self.stream_formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
         self.stream_handler.setFormatter(self.stream_formatter)
         self.logger.addHandler( self.stream_handler)
-
-
-
-    # # logger
-    # logger = logging.getLogger(__name__)
-    # logger.setLevel(logging.DEBUG) # unless a handler is specified otherwise, will log DEBUG and above
-
-    # # logger handler for the log file
-    # log_file_path = 'logs/extract_emote.log' # log file path
-    # file_handler = logging.FileHandler(log_file_path)
-    # file_handler.setLevel(logging.ERROR) # only log to file for ERRORS and above
-    # file_formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s:%(message)s') # format of log lines
-    # file_handler.setFormatter(file_formatter)
-    # logger.addHandler(file_handler)
-
-    # # logger handler for the to console - will log all things (debug and above)
-    # stream_handler = logging.StreamHandler()
-    # stream_formatter = logging.Formatter('%(levelname)s:%(name)s:%(message)s')
-    # stream_handler.setFormatter(stream_formatter)
-    # logger.addHandler(stream_handler)
