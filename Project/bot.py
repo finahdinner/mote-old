@@ -21,10 +21,10 @@ specified_token = '' # add a token in here if you wish to override the default t
 if specified_token:
     TOKEN = specified_token
 else:
-    TOKEN = os.environ.get('7TV_EMOTE_BOT_TOKEN')
+    TOKEN = os.environ.get('SEVENTV_EMOTE_BOT_TOKEN')
 
 description = "7TVGrabber"
-command_prefix = "bants/"
+command_prefix = "pants/"
 bot = commands.Bot(command_prefix=command_prefix, description=description, help_command=None, intents=discord.Intents.all())
 
 
@@ -86,8 +86,7 @@ async def grab(ctx, *args):
             img_size_7tv -= 1 # for the next iteration, if needed
 
         else: # if successfully uploaded
-            await bot_message.edit(content=f"""Success - {emote_name} grabbed.
-Sorry I took so long. :older_man:""")
+            await bot_message.edit(content=f"Success - **{emote_name}** grabbed!")
             my_logger.logger.debug('**SUCCESS!** Emoji uploaded to the server.')
             return
 
