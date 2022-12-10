@@ -82,7 +82,7 @@ async def grab(ctx, *args):
             await ctx.guild.create_custom_emoji(name=emote_name, image=image)
 
         except discord.errors.HTTPException: # if image is too large
-            await bot_message.edit(content="Image file too large - trying smaller versions...")
+            await bot_message.edit(content=f"Image file too large - trying smaller versions (Size: {img_size_7tv})...")
             # try to download the next smallest emote, returning a new img path each time
             emote_name, discord_img_path, error_message = extract_emote.main(page_url=page_url, name_given=emote_name, img_size_7tv=img_size_7tv)
             if not discord_img_path: # if an error
