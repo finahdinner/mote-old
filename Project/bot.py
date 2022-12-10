@@ -73,22 +73,26 @@ async def grab(ctx, *args):
         return
 
     # upload emoji to the server
-    img_size_7tv = 3 # 7tv image size values vary from 1x to 4x
-    while img_size_7tv > 0: # once img_size_7tv hits 0, there are no more
+    img_size_7tv = 4 # 7tv image size values vary from 1x to 4x
+    while img_size_7tv >= 1:
 
         try: # try to upload the image
             with open(discord_img_path, "rb") as f:
                 image = f.read()
             await ctx.guild.create_custom_emoji(name=emote_name, image=image)
 
-        except discord.errors.HTTPException: # if image is too large
-            await bot_message.edit(content=f"Image file too large - trying smaller versions (Size: {img_size_7tv})...")
+        except discord.errors.HTTPException as e: # if image is too large
+            my_logger.logger.debug(f'Failed to upload size {img_size_7tv} - {e}')
             # try to download the next smallest emote, returning a new img path each time
+            if img_size_7tv == 1: # to prevent img_size_7tv reaching 0, because 0x doesn't exist
+                break
+            img_size_7tv -= 1 # for the next iteration below
+            my_logger.logger.debug(f'Trying: {img_size_7tv=}')
+            await bot_message.edit(content=f"Image file too large - trying smaller versions (Size: {img_size_7tv})...")
             emote_name, discord_img_path, error_message = extract_emote.main(page_url=page_url, name_given=emote_name, img_size_7tv=img_size_7tv)
             if not discord_img_path: # if an error
                 await bot_message.edit(content=error_message) # send the error message that was returned
                 return ""
-            img_size_7tv -= 1 # for the next iteration, if needed
 
         else: # if successfully uploaded
             await bot_message.edit(content=f"Success - **{emote_name}** grabbed!")
