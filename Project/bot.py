@@ -21,7 +21,7 @@ specified_token = '' # add a token in here if you wish to override the default t
 if specified_token:
     TOKEN = specified_token
 else:
-    TOKEN = os.environ.get('SEVENTV_EMOTE_BOT_TOKEN')
+    TOKEN = os.environ.get('RONNIE_PICKERING_TOKEN')
 
 description = "7TVGrabber"
 command_prefix = "pants/"
@@ -35,7 +35,7 @@ def incorrect_command_usage(function_name: str) -> str:
 
     return f"""ERROR: Incorrect Usage. 
 - **{command_prefix}{function_name} [7tv-url] [emote-name]**
-- Providing your own custom [emote-name] is *optional*, but will speed up the grabbing process."""
+- Providing your own custom (alphanumeric) [emote-name] is *optional*, but will speed up the grabbing process."""
 
 
 """ Discord Bot Coroutines """
@@ -58,13 +58,16 @@ async def grab(ctx, *args):
         return
 
     page_url = args[0]
-    # the bot will only send one message, and will edit it as it goes
-    bot_message = await(ctx.send("Extracting emoji info, bear with me..."))
     if len(args) == 2: # if a name is provided
         name_given = args[1]
+        if not name_given.isalnum(): # if the name isn't fully alphanumeric
+            await(ctx.send("Choose another emote name - it must be **fully** alphanumeric."))
+            return
+        bot_message = await(ctx.send("Extracting emoji info, bear with me..."))
         # download the correct emote for discord, and later uploading to the server with the name given (name_given)
         emote_name, discord_img_path, error_message = extract_emote.main(page_url=page_url, name_given=name_given, img_size_7tv=4)
     else: # no name is given - will use the default 7TV name
+        bot_message = await(ctx.send("Extracting emoji info, bear with me..."))
         # download the correct emote for discord, and return the default 7TV name
         emote_name, discord_img_path, error_message = extract_emote.main(page_url=page_url, name_given="", img_size_7tv=4)
 
@@ -92,7 +95,7 @@ async def grab(ctx, *args):
             emote_name, discord_img_path, error_message = extract_emote.main(page_url=page_url, name_given=emote_name, img_size_7tv=img_size_7tv)
             if not discord_img_path: # if an error
                 await bot_message.edit(content=error_message) # send the error message that was returned
-                return ""
+                return
 
         else: # if successfully uploaded
             await bot_message.edit(content=f"Success - **{emote_name}** grabbed!")
@@ -112,7 +115,7 @@ async def help(ctx):
         no_perms = ""
 
     await(ctx.send(f"""Usage: **{command_prefix}grab [7tv-url] [emote-name]**
-Providing your own [emote-name] is *optional*, but will speed up the grabbing process.
+Providing your own (alphanumeric) [emote-name] is *optional*, but will speed up the grabbing process.
 {no_perms}"""))
 
 bot.run(TOKEN)

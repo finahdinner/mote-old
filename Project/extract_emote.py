@@ -8,6 +8,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from fake_useragent import UserAgent
 import os
+import re
 
 """ Logging configuration """
 from for_logging import MyLogger
@@ -65,6 +66,9 @@ def get_emote_details(page_url: str, name_given: str = "") -> tuple[str, str]:
             emote_name = ""
         finally:
             driver.quit()
+
+    if not emote_name.isalnum(): # if the emote name isn't entire alphanumeric
+        emote_name = "NewEmote"
 
     return (emote_name, emote_id)
 
