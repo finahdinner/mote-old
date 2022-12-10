@@ -34,8 +34,8 @@ def incorrect_command_usage(function_name: str) -> str:
     """ Returns an message for the user when they incorrectly use a command. """
 
     return f"""ERROR: Incorrect Usage. 
-- **{command_prefix}{function_name} [url] [name]**
-- Providing your own custom **[name]** is *optional*, but will speed up the process."""
+- **{command_prefix}{function_name} [7tv-url] [emote-name]**
+- Providing your own custom [emote-name] is *optional*, but will speed up the grabbing process."""
 
 
 """ Discord Bot Coroutines """
@@ -92,5 +92,11 @@ async def grab(ctx, *args):
 
     await bot_message.edit(content="ERROR: Could not find a suitably-sized emote with the URL provided.")
 
+
+@bot.command()
+async def help(ctx):
+    await(ctx.send(f"""Usage: **{command_prefix}grab [7tv-url] [emote-name]**
+[emote-name] is the name that will be used in the Discord server.
+Providing your own custom name is *optional*, but will speed up the grabbing process."""))
 
 bot.run(TOKEN)
