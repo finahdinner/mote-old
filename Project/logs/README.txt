@@ -1,0 +1,1 @@
+This is to keep the logs directory in the repository.
