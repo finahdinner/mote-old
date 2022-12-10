@@ -27,7 +27,6 @@ DISCORD_EMOTES_PATH = "discord_emotes/"
 
 # Making the window 'headless' (not visible)
 WINDOW_OPTIONS = Options()
-WINDOW_OPTIONS.add_argument('--window-size=1920,1080') # so that element.click() works
 WINDOW_OPTIONS.add_argument('--headless')
 WINDOW_OPTIONS.add_argument('--disable-gpu')
 # set user agent
