@@ -48,6 +48,11 @@ async def on_ready(): # confirms that the bot is online
 @bot.command()
 async def grab(ctx, *args):
 
+    has_emoji_perms = ctx.message.author.guild_permissions.manage_emojis
+    if has_emoji_perms is False:
+        await(ctx.send("You do not have sufficient permissions to use this command."))
+        return
+
     if len(args) != 1 and len(args) != 2: # if too few or too many args given
         await(ctx.send(incorrect_command_usage(sys._getframe().f_code.co_name)))
         return
@@ -95,8 +100,15 @@ async def grab(ctx, *args):
 
 @bot.command()
 async def help(ctx):
+
+    has_emoji_perms = ctx.message.author.guild_permissions.manage_emojis
+    if has_emoji_perms is False:
+        no_perms = f"**__To use {command_prefix}grab, you must have permission to manage emojis.__**"
+    else:
+        no_perms = ""
+
     await(ctx.send(f"""Usage: **{command_prefix}grab [7tv-url] [emote-name]**
-[emote-name] is the name that will be used in the Discord server.
-Providing your own custom name is *optional*, but will speed up the grabbing process."""))
+Providing your own [emote-name] is *optional*, but will speed up the grabbing process.
+{no_perms}"""))
 
 bot.run(TOKEN)
