@@ -14,8 +14,8 @@ Some of the additional libraries and modules used: *PIL*, *requests*, *selenium*
 
 - To use the bot, you **need** a valid bot _token_, which may be obtained by creating a bot through the Discord Developer site.
 - You need to set an environment variable called "MOTE_BOT_TOKEN", otherwise the *bot.py* will not run.
-- In linux, type this into the command line: **export MOTE_BOT_TOKEN="[TOKEN]"** ([TOKEN] is the token you generated through the Discord site.
-- Also, you may need to **pip install** the dependencies found in **requirements.txt**, using **pip install -r requirements.txt*, whilst in the *Project* folder.
+- In linux, type this into the command line: **export MOTE_BOT_TOKEN="[TOKEN]"** -- [TOKEN] is the token you generated through the Discord site.
+- Also, you may need to **pip install** the dependencies found in **requirements.txt**, using **pip install -r requirements.txt**, whilst in the *Project* folder.
 
 
 ---
