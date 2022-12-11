@@ -8,7 +8,6 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from fake_useragent import UserAgent
 import os
-import re
 
 """ Logging configuration """
 from for_logging import MyLogger

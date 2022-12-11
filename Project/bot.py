@@ -21,10 +21,10 @@ specified_token = '' # add a token in here if you wish to override the default t
 if specified_token:
     TOKEN = specified_token
 else:
-    TOKEN = os.environ.get('SEVENTV_EMOTE_BOT_TOKEN')
+    TOKEN = os.environ.get('MOTE_BOT_TOKEN')
 
 description = "7TVGrabber"
-command_prefix = "pants/"
+command_prefix = "mote/"
 bot = commands.Bot(command_prefix=command_prefix, description=description, help_command=None, intents=discord.Intents.all())
 
 
