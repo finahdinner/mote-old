@@ -1,4 +1,4 @@
-# Mote, a Discord bot
+# Mote, a Discord bot - CS50 Final Project 2022
 
 ### Video Demo: https://youtu.be/kxIsNeCQlGc
 ### Description:
