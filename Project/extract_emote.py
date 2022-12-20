@@ -21,6 +21,7 @@ my_logger = MyLogger(file_name=file_name, log_file_path=f"logs/{file_name}.log")
 
 DOWNLOADED_EMOTES_PATH = "downloaded_emotes/"
 DISCORD_EMOTES_PATH = "discord_emotes/"
+ACCEPTABLE_IMAGE_TYPES = ["png", "jpg", "jpeg"] # gif not included at this time, since I'm not sure how to convert animated emotes
 
 
 """ Selenium Settings"""
@@ -79,7 +80,7 @@ def get_emote_url(emote_id: str, img_size_7tv: int = 4) -> str:
     return emote_url
 
 
-def download_emote(emote_id: str, emote_url: str, img_type: str = "webp") -> str:
+def download_emote_7tv(emote_id: str, emote_url: str, img_type: str = "webp") -> str:
     """ Download the (webp) emote with the emote url given, and return its path """
 
     response = requests.get(emote_url)
@@ -97,6 +98,48 @@ def download_emote(emote_id: str, emote_url: str, img_type: str = "webp") -> str
 
     return img_path
 
+
+def download_image_discord(image_url: str, emote_name: str) -> tuple[str, int]:
+    """ Download the image emote with the discord url given, and return its path + file size """
+
+    response = requests.get(image_url)
+    if response.status_code != 200:
+        return ("", 0)
+
+    img_type = image_url.split(".")[-1]
+
+    if img_type not in ACCEPTABLE_IMAGE_TYPES:
+        return ("", 0)
+
+    # will overwrite other emotes if the same name is given
+    img_path = f"{DOWNLOADED_EMOTES_PATH}{emote_name}.{img_type}"
+    with open(img_path, "wb") as img:
+        img.write(response.content)
+
+    try:
+        img_file_size = os.path.getsize(img_path) # 262144 is the max size discord allows for emotes
+    except OSError as e: # if file not found for whatever reason
+        my_logger.logger.error(e)
+        return ("", 0)
+        
+    my_logger.logger.debug(f'SUCCESS - Downloaded Image. Path = {img_path}.')
+    return (img_path, img_file_size)
+
+
+def resize_img(image_path: str) -> str:
+    """ Resizes the specified image at the URL provided, into a size valid for discord emotes. """
+    max_size = (256, 256) # max allowed discord size
+
+    try:
+        im = Image.open(image_path)
+        im.thumbnail(max_size, Image.Resampling.LANCZOS)
+        converted_img_path = f"{DISCORD_EMOTES_PATH}{''.join(image_path.split('emotes/')[1:])}"
+        im.save(converted_img_path)
+    except:
+        my_logger.logger.error(f'Unable to resize image.')
+        converted_img_path = ""
+    
+    return converted_img_path
 
 def is_animated(img_path: str) -> bool:
     """ Checks if webp image is animated or not. """
@@ -124,7 +167,7 @@ def discord_img(emote_id:str, file_path: str, emote_url_webp: str) -> str:
             img_type = 'png'
 
         discord_emote_url = emote_url_webp.replace('x.webp', f'x.{img_type}') # generate the correct png or gif url
-        discord_img_path = download_emote(emote_id=emote_id, emote_url=discord_emote_url, img_type=img_type)
+        discord_img_path = download_emote_7tv(emote_id=emote_id, emote_url=discord_emote_url, img_type=img_type)
         if not discord_img_path: # if it can't navigate to the page
             return ""
         my_logger.logger.debug(f'SUCCESS - Discord Image Downloaded. Path = {discord_img_path}.')
@@ -135,10 +178,10 @@ def discord_img(emote_id:str, file_path: str, emote_url_webp: str) -> str:
     return discord_img_path
 
 
-def main(page_url: str, name_given: str = "", img_size_7tv: int = 4) -> tuple[str, str, str]:
-    """ Main function. Downloads the image from the given url and converts to either
+def main_grab(page_url: str, name_given: str = "", img_size_7tv: int = 4) -> tuple[str, str, str]:
+    """ Main grab function. Downloads the image from the given url and converts to either
     a gif (if animated) or a png format (if not animated).
-    It returns a 2-value tuple including the file path (empty string if false)
+    It returns a 3-value tuple including the emote_name, file path (empty string if false)
     and error message (empty string if no errors). """
 
     if name_given: # if a name was provided
@@ -151,7 +194,7 @@ def main(page_url: str, name_given: str = "", img_size_7tv: int = 4) -> tuple[st
             return (emote_name, "", logger_message)
 
     emote_url_webp = get_emote_url(emote_id, img_size_7tv=img_size_7tv) # get webp img url
-    downloaded_img_path = download_emote(emote_id=emote_id, emote_url=emote_url_webp, img_type="webp") # download webp image
+    downloaded_img_path = download_emote_7tv(emote_id=emote_id, emote_url=emote_url_webp, img_type="webp") # download webp image
     if not downloaded_img_path: # if it failed to find the url
         logger_message = f'Invalid URL Provided.'
         my_logger.logger.error(logger_message)
@@ -166,6 +209,33 @@ def main(page_url: str, name_given: str = "", img_size_7tv: int = 4) -> tuple[st
     return (emote_name, discord_img_path, "") # return file path if the process was successful
 
 
+def main_convert(image_url: str, name_given: str) -> tuple[str, int, str]:
+    """ Main convert function. Downloads the image from the given discord url and resizes if needed.
+    It returns a 2-value tuple including the file path (empty string if false)
+    and error message (empty string if no errors). """
+    downloaded_img_path, img_file_size = download_image_discord(image_url=image_url, emote_name=name_given)
+    if not downloaded_img_path: # if an error downloading the image
+        logger_message = f'''Error extracting the image. Please ensure the file type is one of:
+**{", ".join(ACCEPTABLE_IMAGE_TYPES)}**.'''
+        my_logger.logger.error(logger_message)
+        return ("", 0, logger_message)
+
+    discord_max_emote_size = 262144
+    if img_file_size > discord_max_emote_size:
+        # resize image to max 256x256
+        img_path = resize_img(image_path=downloaded_img_path)
+        if not img_path: # if error resizing image
+            logger_message = f'Error resizing the image.'
+            my_logger.logger.error(logger_message)
+            return ("", 0, logger_message) 
+    else:
+        img_path = downloaded_img_path
+    
+    img_size = os.path.getsize(img_path)
+
+    return (img_path, img_size, "")
+
+
 if __name__ == "__main__":
     page_url = "https://7tv.app/emotes/60abf171870d317bef23d399" # test url
-    main(page_url)
+    main_grab(page_url)
