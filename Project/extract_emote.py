@@ -21,7 +21,7 @@ my_logger = MyLogger(file_name=file_name, log_file_path=f"logs/{file_name}.log")
 
 DOWNLOADED_EMOTES_PATH = "downloaded_emotes/"
 DISCORD_EMOTES_PATH = "discord_emotes/"
-ACCEPTABLE_IMAGE_TYPES = ["png", "jpg", "jpeg"] # gif not included at this time, since I'm not sure how to convert animated emotes
+ACCEPTABLE_IMAGE_TYPES = ["png", "jpg", "jpeg", "gif", "webp"] # gif not included at this time, since I'm not sure how to convert animated emotes
 
 
 """ Selenium Settings"""
@@ -99,17 +99,17 @@ def download_emote_7tv(emote_id: str, emote_url: str, img_type: str = "webp") ->
     return img_path
 
 
-def download_image_discord(image_url: str, emote_name: str) -> tuple[str, int]:
+def download_image_discord(image_url: str, emote_name: str) -> tuple[str, str, int]:
     """ Download the image emote with the discord url given, and return its path + file size """
 
     response = requests.get(image_url)
     if response.status_code != 200:
-        return ("", 0)
+        return ("", "", 0)
 
     img_type = image_url.split(".")[-1]
 
     if img_type not in ACCEPTABLE_IMAGE_TYPES:
-        return ("", 0)
+        return ("", img_type, 0)
 
     # will overwrite other emotes if the same name is given
     img_path = f"{DOWNLOADED_EMOTES_PATH}{emote_name}.{img_type}"
@@ -120,26 +120,40 @@ def download_image_discord(image_url: str, emote_name: str) -> tuple[str, int]:
         img_file_size = os.path.getsize(img_path) # 262144 is the max size discord allows for emotes
     except OSError as e: # if file not found for whatever reason
         my_logger.logger.error(e)
-        return ("", 0)
+        return ("", img_type, 0)
         
     my_logger.logger.debug(f'SUCCESS - Downloaded Image. Path = {img_path}.')
-    return (img_path, img_file_size)
+    return (img_path, img_type, img_file_size)
 
 
-def resize_img(image_path: str) -> str:
+def resize_img(image_path: str, img_type: str) -> str:
     """ Resizes the specified image at the URL provided, into a size valid for discord emotes. """
     max_size = (256, 256) # max allowed discord size
 
     try:
         im = Image.open(image_path)
         im.thumbnail(max_size, Image.Resampling.LANCZOS)
-        converted_img_path = f"{DISCORD_EMOTES_PATH}{''.join(image_path.split('emotes/')[1:])}"
-        im.save(converted_img_path)
+        resized_img_path = f"{DISCORD_EMOTES_PATH}{''.join(image_path.split('emotes/')[1:])}"
+        im.save(resized_img_path)
     except:
         my_logger.logger.error(f'Unable to resize image.')
-        converted_img_path = ""
+        resized_img_path = ""
+        return resized_img_path
     
-    return converted_img_path
+    """ the code below doesn't actually seem required? discord seems to convert webp's successfully """
+    # if img_type == "webp": # if webp, try converting it
+    #     try:
+    #         im2 = Image.open(resized_img_path)
+    #         new_img_path = f'{"".join(resized_img_path.split(".")[:1])}.png'
+    #         im2.save(new_img_path)
+    #     except:
+    #         my_logger.logger.error(f'Unable to convert webp image.')
+    #         return resized_img_path
+    # else:
+    #     new_img_path = resized_img_path
+
+    new_img_path = resized_img_path
+    return new_img_path
 
 def is_animated(img_path: str) -> bool:
     """ Checks if webp image is animated or not. """
@@ -213,7 +227,7 @@ def main_convert(image_url: str, name_given: str) -> tuple[str, int, str]:
     """ Main convert function. Downloads the image from the given discord url and resizes if needed.
     It returns a 2-value tuple including the file path (empty string if false)
     and error message (empty string if no errors). """
-    downloaded_img_path, img_file_size = download_image_discord(image_url=image_url, emote_name=name_given)
+    downloaded_img_path, img_type, img_file_size = download_image_discord(image_url=image_url, emote_name=name_given)
     if not downloaded_img_path: # if an error downloading the image
         logger_message = f'''Error extracting the image. Please ensure the file type is one of:
 **{", ".join(ACCEPTABLE_IMAGE_TYPES)}**.'''
@@ -221,9 +235,17 @@ def main_convert(image_url: str, name_given: str) -> tuple[str, int, str]:
         return ("", 0, logger_message)
 
     discord_max_emote_size = 262144
-    if img_file_size > discord_max_emote_size:
+    print(f"{img_file_size=}")
+
+    # discord breaks animated webp emotes (converts to a single frame)
+    if is_animated(img_path=downloaded_img_path) and img_type == "webp": # if an animated image
+        logger_message = f'Cannot upload an animated webp emote. Please try finding an equivalent gif file.'
+        my_logger.logger.error(logger_message)
+        return ("", 0, logger_message)
+
+    if img_file_size > discord_max_emote_size or img_type == "webp":
         # resize image to max 256x256
-        img_path = resize_img(image_path=downloaded_img_path)
+        img_path = resize_img(image_path=downloaded_img_path, img_type=img_type)
         if not img_path: # if error resizing image
             logger_message = f'Error resizing the image.'
             my_logger.logger.error(logger_message)

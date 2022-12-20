@@ -130,7 +130,7 @@ async def convert(ctx, image_file: discord.Attachment | None, *args):
     if not img_path: # if .main_convert wasn't successful
         await(bot_message.edit(content=error_message))
         return
-
+    
     try:
         with open(img_path, "rb") as f:
             image = f.read()
@@ -164,5 +164,6 @@ async def help(ctx):
     await(ctx.send(f"""Usage: **{command_prefix}grab [7tv-url] [emote-name]**
 Providing your own (alphanumeric) [emote-name] is *optional*, but will speed up the grabbing process.
 {no_perms}"""))
+
 
 bot.run(TOKEN)
