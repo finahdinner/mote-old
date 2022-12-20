@@ -40,6 +40,8 @@ def incorrect_command_usage(function_name: str) -> str:
             return f"""ERROR: Incorrect Usage. 
     - **{command_prefix}{function_name} [emote-name]**, with a **png/jpg/jpeg** image attached."""
 
+    return "ERROR: Incorrect Usage."
+
 """ Discord Bot Coroutines """
 
 @bot.event
