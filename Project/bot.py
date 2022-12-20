@@ -26,7 +26,7 @@ else:
 description = "7TVGrabber"
 command_prefix = "mote/"
 bot = commands.Bot(command_prefix=command_prefix, description=description, help_command=None, intents=discord.Intents.all())
-
+invite_link = "https://discord.com/api/oauth2/authorize?client_id=1050507549486620764&permissions=1073743872&scope=bot"
 
 """ Helper Functions """
 
@@ -103,6 +103,11 @@ async def grab(ctx, *args):
             return
 
     await bot_message.edit(content="ERROR: Could not find a suitably-sized emote with the URL provided.")
+
+
+@bot.command()
+async def invite(ctx):
+    await(ctx.send(f"Invite link: {invite_link}"))
 
 
 @bot.command()
