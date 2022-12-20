@@ -159,12 +159,16 @@ async def help(ctx):
 
     has_emoji_perms = ctx.message.author.guild_permissions.manage_emojis
     if has_emoji_perms is False:
-        no_perms = f"**__To use {command_prefix}grab, you must have permission to manage emojis.__**"
+        no_perms = f"""**
+__To use Mote to upload emotes to this server, you must have permissions to manage emojis.__**"""
     else:
         no_perms = ""
 
-    await(ctx.send(f"""Usage: **{command_prefix}grab [7tv-url] [emote-name]**
-Providing your own (alphanumeric) [emote-name] is *optional*, but will speed up the grabbing process.
+    await(ctx.send(f"""**__Bot Usage:__**
+
+**{command_prefix}grab [7tv-url] [emote-name]** - uploads the emote from the given 7TV URL to the server
+**{command_prefix}convert [emote-name]** - uploads the attached image as an emote to the server
+**{command_prefix}invite** - provides an invite link to add Mote to a server
 {no_perms}"""))
 
 
