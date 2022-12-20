@@ -1,7 +1,4 @@
-# Mote, a Discord bot - CS50 Final Project 2022
-
-### Video Demo: https://youtu.be/kxIsNeCQlGc
-### Description:
+# Mote, a Discord bot
 
 **Mote is a Discord bot designed to help you with uploading 7TV emotes to your Discord server.<br><br>**
 It works with *7tv.app*, a website/browser extension acting as a database for emotes, which was designed for *twitch.tv*.<br>
@@ -38,6 +35,8 @@ Some of the additional libraries and modules used: *PIL*, *requests*, *selenium*
 **Bot Usage:**
 
 - *mote/grab [7tv-url] [emote-name]* -- retrieves the emote from the 7tv URL provided, and uploads to the current discord server
+- *mote/convert [emote-name]* -- if an attached image is provided, this command uploads the image to the current discord server
+- *mote/invite* -- provides an invitation link for the bot
 - *mote/help* -- provides usage information<br>
 
 **Discord Permissions Required:**
