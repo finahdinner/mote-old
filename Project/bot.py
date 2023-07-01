@@ -179,8 +179,8 @@ __To use Mote to upload emotes to this server, you must have permissions to mana
 
     await(ctx.send(f"""**__Bot Usage:__**
 
-**{command_prefix}grab [7tv-url] [emote-name]** - uploads the emote from the given 7TV URL to the server
-**{command_prefix}convert [emote-name]** - uploads the attached image as an emote to the server
+**{command_prefix}grab <7tv-url> <emote-name>** - uploads the emote from the given 7TV URL to the server
+**{command_prefix}convert <emote-name>** - uploads the attached image as an emote to the server
 **{command_prefix}invite** - provides an invite link to add Mote to a server
 {no_perms}"""))
 
