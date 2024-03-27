@@ -1,3 +1,5 @@
+## OUTDATED - SEE NEW VERSION [HERE](https://github.com/finahdinner/mote)
+
 # Mote, a Discord bot
 
 **Mote is a Discord bot designed to help you with uploading 7TV emotes to your Discord server.<br><br>**
